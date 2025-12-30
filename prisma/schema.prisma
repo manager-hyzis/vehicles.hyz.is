@@ -1,0 +1,165 @@
+generator client {
+  provider            = "prisma-client"
+  importFileExtension = ""
+  output              = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  phone         String
+  type          UserType  @default(PESSOA_FISICA)
+  
+  street        String?
+  neighborhood  String?
+  city          String
+  state         String
+  country       String   @default("BR")
+  zipCode       String?
+  
+  latitude      Float?
+  longitude     Float?
+  
+  acceptOffers  Boolean  @default(true)
+  acceptPartnerOffers Boolean @default(true)
+  
+  vehicles      Vehicle[]
+  favorites     Favorite[]
+  contacts      Contact[]
+  transactions  Transaction[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum UserType {
+  PESSOA_FISICA
+  REVENDEDOR
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  category      String
+  brand         String
+  model         String
+  version       String
+  year          Int
+  
+  title         String
+  mileage       Int
+  color         String
+  engineSize    Float
+  fuel          String
+  transmission  String
+  
+  price         Decimal   @db.Decimal(10, 2)
+  resalePrice   Decimal?  @db.Decimal(10, 2)
+  fipeValue     Decimal?  @db.Decimal(10, 2)
+  fipeCode      String?
+  fipeMonth     String?
+  
+  description   String    @db.Text
+  
+  features      Json
+  observations  String[]
+  
+  status        VehicleStatus @default(ACTIVE)
+  views         Int       @default(0)
+  
+  latitude      Float?
+  longitude     Float?
+  
+  images        VehicleImage[]
+  favorites     Favorite[]
+  contacts      Contact[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum VehicleStatus {
+  ACTIVE
+  PAUSED
+  SOLD
+}
+
+model VehicleImage {
+  id            String    @id @default(cuid())
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  imageUrl      String
+  imageKey      String
+  isCover       Boolean   @default(false)
+  order         Int
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([vehicleId])
+}
+
+model Favorite {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@unique([userId, vehicleId])
+  @@index([userId])
+}
+
+model Contact {
+  id            String    @id @default(cuid())
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  senderName    String
+  senderEmail   String
+  senderPhone   String
+  message       String    @db.Text
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([vehicleId])
+  @@index([userId])
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  service       String
+  amount        Decimal   @db.Decimal(10, 2)
+  paymentMethod String
+  status        TransactionStatus @default(PENDING)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
