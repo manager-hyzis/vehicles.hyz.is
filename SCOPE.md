@@ -1638,14 +1638,145 @@ Implemente painel de gestão de planos e serviços de destaque:
   * Histórico de alterações de preços
 ```
 
+### Prompt 22: Página de Contato e Suporte
+```
+Implemente página de contato e suporte:
+- Página /contato com formulário de contato
+- Campos: Nome, Email, Assunto, Mensagem, Telefone (opcional)
+- Validação com Zod
+- POST /api/contact para enviar mensagem
+- Integração com email (Resend ou similar)
+- Confirmação de envio ao usuário
+- Página /faq com perguntas frequentes
+- Página /termos com termos de serviço
+- Página /privacidade com política de privacidade
+```
+
+### Prompt 23: Sistema de Notificações
+```
+Implemente sistema de notificações:
+- Notificações em tempo real (Socket.io ou similar)
+- Tipos de notificação:
+  * Novo interessado no anúncio
+  * Anúncio foi moderado/aprovado/rejeitado
+  * Pacote vencendo em 7 dias
+  * Novo review recebido
+  * Denúncia resolvida
+- Página /notificacoes com histórico
+- Badge de notificações não lidas
+- Marcar como lida/deletar notificação
+- GET /api/notifications para listar
+- PUT /api/notifications/[id]/read para marcar como lida
+```
+
+### Prompt 24: Sistema de Chat/Mensagens
+```
+Implemente sistema de chat entre vendedor e comprador:
+- Chat em tempo real (Socket.io ou similar)
+- Página /mensagens com lista de conversas
+- Detalhes da conversa com histórico
+- Envio de mensagens com validação
+- Notificação de nova mensagem
+- Marcar conversa como lida
+- Arquivar conversa
+- POST /api/messages para enviar
+- GET /api/messages/[conversationId] para listar
+- Integração com WhatsApp (opcional)
+```
+
+### Prompt 25: Sistema de Favoritos
+```
+Implemente sistema de favoritos:
+- Botão "Favoritar" em cards de anúncios
+- Página /meus-favoritos com listagem
+- Filtros e ordenação de favoritos
+- Remover do favoritos
+- Compartilhar favorito
+- POST /api/favorites para adicionar
+- DELETE /api/favorites/[id] para remover
+- GET /api/favorites para listar
+- Contador de favoritos no card
+```
+
+### Prompt 26: Dashboard do Usuário
+```
+Implemente dashboard completo do usuário:
+- Página /dashboard com resumo
+- Widgets:
+  * Número de anúncios ativos
+  * Número de visualizações (total e últimos 30 dias)
+  * Número de interessados
+  * Número de vendas
+  * Receita total
+  * Métrica de reputação (se aplicável)
+- Links rápidos para ações comuns
+- Gráficos de visualizações e interessados
+- Últimos anúncios criados
+- Notificações recentes
+- GET /api/dashboard para dados
+```
+
+### Prompt 27: Relatórios e Estatísticas
+```
+Implemente sistema de relatórios:
+- Página /dashboard/relatorios com filtros
+- Relatórios disponíveis:
+  * Anúncios por período
+  * Visualizações por anúncio
+  * Interessados por anúncio
+  * Vendas por período
+  * Receita por período
+  * Performance de destaques
+- Exportar relatório (PDF, CSV)
+- Gráficos interativos (Recharts)
+- GET /api/reports com filtros
+```
+
+### Prompt 28: Integração WhatsApp
+```
+Implemente integração com WhatsApp:
+- Botão "Contatar via WhatsApp" nos anúncios
+- Link direto para WhatsApp do vendedor
+- Mensagem pré-preenchida com informações do veículo
+- Webhook para receber mensagens (opcional)
+- Integração com Twilio (opcional)
+- Número de WhatsApp do vendedor no perfil
+```
+
+### Prompt 29: Sistema de Cupons/Promoções
+```
+Implemente sistema de cupons:
+- Painel admin para criar cupons
+- Tipos de cupom: Percentual, Valor fixo
+- Validação: Data de expiração, Uso máximo, Uso por usuário
+- Aplicar cupom no checkout
+- Página /cupons com cupons disponíveis
+- POST /api/coupons/validate para validar
+- GET /api/coupons para listar disponíveis
+- Histórico de cupons usados
+```
+
+### Prompt 30: Integração com FIPE
+```
+Implemente integração com tabela FIPE:
+- API para consultar preço FIPE
+- Sugestão de preço baseado em FIPE
+- Comparação com preço do anúncio
+- Atualização automática de preços FIPE
+- GET /api/fipe/[brand]/[model]/[year]
+- Cache de dados FIPE
+- Painel admin para gerenciar FIPE
+```
+
 ### Prompt 14: Página Inicial
 ```
 Implemente página inicial:
-- Seção: Busca Simples (header com fundo verde)
+- Seção: Busca Simples (header com fundo vermelho)
 - Seção: Chamada para Ação (3 cards com ícones)
-- Seção: Revendedores (grid com logos)
+- Seção: Revendedoras Destaque (carrossel com logos)
+- Seção: Ofertões do Brasil (carrossel de ofertões)
 - Seção: Veículos em Destaque (GET /api/vehicles?featured=true)
-- Seção: Imóveis (opcional - integração externa)
+- Footer com links importantes
 - Responsividade mobile-first
 ```
 

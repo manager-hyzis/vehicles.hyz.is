@@ -11,9 +11,10 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
-  password      String
+  password      String?
   name          String
   phone         String
+  image         String?
   type          UserType  @default(PESSOA_FISICA)
   
   street        String?
@@ -29,18 +30,30 @@ model User {
   acceptOffers  Boolean  @default(true)
   acceptPartnerOffers Boolean @default(true)
   
+  emailVerified DateTime?
+  
   vehicles      Vehicle[]
   favorites     Favorite[]
   contacts      Contact[]
   transactions  Transaction[]
+  reports       Report[]
+  reviews       Review[]
+  subscriptions Subscription[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([type])
+  @@index([city])
 }
 
 enum UserType {
   PESSOA_FISICA
-  REVENDEDOR
+  REVENDEDORA
+  GARAGE
+  CONCESSIONARIA
+  ADMIN
 }
 
 model Vehicle {
@@ -72,6 +85,9 @@ model Vehicle {
   features      Json
   observations  String[]
   
+  city          String
+  state         String
+  
   status        VehicleStatus @default(ACTIVE)
   views         Int       @default(0)
   
@@ -81,12 +97,17 @@ model Vehicle {
   images        VehicleImage[]
   favorites     Favorite[]
   contacts      Contact[]
+  reports       Report[]
+  reviews       Review[]
+  highlights    Highlight[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   @@index([userId])
   @@index([status])
+  @@index([brand])
+  @@index([city])
 }
 
 enum VehicleStatus {
@@ -162,4 +183,120 @@ enum TransactionStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+model Report {
+  id            String    @id @default(cuid())
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  type          ReportType
+  description   String?   @db.Text
+  status        ReportStatus @default(PENDING)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([vehicleId])
+  @@index([status])
+}
+
+enum ReportType {
+  GOLPE
+  CONTEUDO_INADEQUADO
+  VEICULO_ROUBADO
+  OUTRO
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+model Review {
+  id            String    @id @default(cuid())
+  sellerId      String
+  seller        User      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  rating        Int       // 1-5
+  comment       String?   @db.Text
+  recommend     Boolean
+  
+  reviewToken   String?   @unique
+  tokenUsed     Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([sellerId])
+  @@index([vehicleId])
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId        String
+  plan          Plan      @relation(fields: [planId], references: [id])
+  
+  status        SubscriptionStatus @default(ACTIVE)
+  startDate     DateTime
+  endDate       DateTime
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Plan {
+  id            String    @id @default(cuid())
+  name          String    // "3 meses", "6 meses", "9 meses"
+  duration      Int       // em meses
+  price         Decimal   @db.Decimal(10, 2)
+  description   String?   @db.Text
+  
+  userTypes     String[]  // PESSOA_FISICA, REVENDEDORA, GARAGE, CONCESSIONARIA
+  
+  subscriptions Subscription[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Highlight {
+  id            String    @id @default(cuid())
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  type          HighlightType
+  price         Decimal   @db.Decimal(10, 2)
+  duration      Int       // em dias
+  
+  startDate     DateTime
+  endDate       DateTime
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([vehicleId])
+  @@index([type])
+}
+
+enum HighlightType {
+  DESTAQUE
+  SUPER_DESTAQUE
+  OFERTAO
 }
