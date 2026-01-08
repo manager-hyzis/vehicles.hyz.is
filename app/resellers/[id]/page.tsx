@@ -147,7 +147,7 @@ export default function ResellerProfilePage() {
                     {reseller.name}
                   </h1>
                   <p className={`text-sm mb-4 ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                    {reseller.type === "REVENDEDORA"
+                    {reseller.type === "RESELLER"
                       ? "Revendedora"
                       : reseller.type === "GARAGE"
                       ? "Garage/Logista"

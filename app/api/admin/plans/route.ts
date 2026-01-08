@@ -1,56 +1,39 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import { auth } from "@/app/api/auth/[...nextauth]/route"
 import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
-    if (!session || session.user.type !== "ADMIN") {
+    if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const plans = await prisma.plan.findMany({
-      select: {
-        id: true,
-        name: true,
-        duration: true,
-        price: true,
-        description: true,
-        _count: {
-          select: {
-            subscriptions: true,
-          },
-        },
-      },
       orderBy: { duration: "asc" },
     })
 
     const highlights = await prisma.highlight.findMany({
-      select: {
-        id: true,
-        name: true,
-        duration: true,
-        price: true,
-        description: true,
-        _count: {
-          select: {
-            subscriptions: true,
-          },
-        },
-      },
       orderBy: { duration: "asc" },
     })
 
     return NextResponse.json({
       plans: plans.map((p) => ({
-        ...p,
-        activeContracts: p._count.subscriptions,
+        id: p.id,
+        name: p.name,
+        duration: p.duration,
+        price: p.price,
+        description: p.description,
+        activeContracts: 0,
       })),
       highlights: highlights.map((h) => ({
-        ...h,
-        activeContracts: h._count.subscriptions,
+        id: h.id,
+        name: h.name,
+        duration: h.duration,
+        price: h.price,
+        description: h.description,
+        activeContracts: 0,
       })),
     })
   } catch (error) {

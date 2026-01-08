@@ -1,10 +1,8 @@
 'use client'
 
-import { Search, MapPin, Menu, X, Sun, Moon } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { MapPin, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface HeaderProps {
   isDarkMode?: boolean
@@ -13,9 +11,6 @@ interface HeaderProps {
 
 export default function Header({ isDarkMode = false, onThemeToggle }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [vehicle, setVehicle] = useState('')
-  const [city, setCity] = useState('São Paulo')
-  const router = useRouter()
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -29,135 +24,146 @@ export default function Header({ isDarkMode = false, onThemeToggle }: HeaderProp
     }
   }, [isMenuOpen])
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    const params = new URLSearchParams()
-    if (vehicle) params.append('vehicle', vehicle)
-    if (city) params.append('city', city)
-    router.push(`/search?${params.toString()}`)
-  }
-
   const toggleTheme = () => {
     onThemeToggle?.(!isDarkMode)
+  }
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
   }
 
   return (
     <>
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden bg-background">
-          <div className="flex flex-col h-full">
+        <div className="fixed inset-0 z-[100] md:hidden">
+          <div className={`${isDarkMode ? 'bg-[#111]' : 'bg-white'} h-full flex flex-col`}>
             <div className={`flex items-center justify-between p-4 border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'}`}>
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-[#dc2626] rounded-full flex items-center justify-center mr-2">
+                <div className="w-8 h-8 bg-[#fe2601] rounded-full flex items-center justify-center mr-2">
                   <span className="text-white font-bold text-sm">V</span>
                 </div>
-                <span className="text-[#dc2626] font-bold text-lg">Vehicles</span>
+                <span className="text-[#fe2601] font-bold text-lg">Vehicles</span>
               </div>
-              <button onClick={() => setIsMenuOpen(false)}>
-                <X className="w-6 h-6" />
+              <button onClick={toggleMenu}>
+                <X className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-[#222]'}`} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <nav className="space-y-4">
-                <a href="/" className="block text-foreground hover:text-[#dc2626]">Início</a>
-                <a href="/search" className="block text-foreground hover:text-[#dc2626]">Busca Avançada</a>
-                <a href="/resellers" className="block text-foreground hover:text-[#dc2626]">Revendedoras</a>
-                <a href="/plans" className="block text-foreground hover:text-[#dc2626]">Planos</a>
-                <a href="/contact" className="block text-foreground hover:text-[#dc2626]">Contato</a>
-              </nav>
+              <p className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'} text-sm leading-relaxed mb-6`}>
+                Plataforma completa para compra e venda de veículos usados. Encontre o veículo ideal com segurança e praticidade.
+              </p>
+              <div className="mb-8">
+                <h3 className={`${isDarkMode ? 'text-white' : 'text-[#222]'} font-semibold text-lg mb-4`}>Menu</h3>
+                <ul className="space-y-3">
+                  {['Buscar Veículos', 'Revendedoras', 'Planos', 'Contato'].map((item, index) => (
+                    <li key={index}>
+                      <a href="#" className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'} text-sm hover:text-[#fe2601] transition-colors`}>
+                        {item}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Desktop Header */}
-      <header className={`hidden md:block ${isDarkMode ? 'bg-[#222]' : 'bg-white'} border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} sticky top-0 z-50 shadow-sm`}>
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
+      <header className={`hidden md:block ${isDarkMode ? 'bg-[#222]' : 'bg-white'} border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} px-4 py-3`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-[#dc2626] rounded-full flex items-center justify-center mr-2">
+              <div className="w-10 h-10 bg-[#fe2601] rounded-full flex items-center justify-center mr-2">
                 <span className="text-white font-bold text-lg">V</span>
               </div>
-              <span className="text-[#dc2626] font-bold text-xl">Vehicles</span>
+              <span className="text-[#fe2601] font-bold text-xl">Vehicles</span>
             </div>
             <div className="flex items-center space-x-4">
-              <a href="/search" className={`text-sm ${isDarkMode ? 'text-[#7e7e7e] hover:text-white' : 'text-[#52525b] hover:text-[#dc2626]'}`}>Busca Avançada</a>
-              <a href="/resellers" className={`text-sm ${isDarkMode ? 'text-[#7e7e7e] hover:text-white' : 'text-[#52525b] hover:text-[#dc2626]'}`}>Revendedoras</a>
-              <button onClick={toggleTheme} className="p-1">
-                {isDarkMode ? <Sun className="w-5 h-5 text-[#7e7e7e]" /> : <Moon className="w-5 h-5 text-[#7e7e7e]" />}
-              </button>
-              <a href="/login" className={`text-sm ${isDarkMode ? 'text-[#7e7e7e] hover:text-white' : 'text-[#52525b] hover:text-[#dc2626]'}`}>Acessar</a>
-              <a href="/register" className={`text-sm ${isDarkMode ? 'text-[#7e7e7e] hover:text-white' : 'text-[#52525b] hover:text-[#dc2626]'}`}>Cadastrar</a>
+              <div className={`flex items-center ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'} text-sm`}>
+                <MapPin className="w-4 h-4 mr-1" />
+                São Paulo - SP
+              </div>
+              <div className="flex items-center space-x-2">
+                <button onClick={toggleTheme} className="p-1">
+                  {isDarkMode ? <Sun className="w-5 h-5 text-[#7e7e7e]" /> : <Moon className="w-5 h-5 text-[#7e7e7e]" />}
+                </button>
+                <a href="/login" className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'} text-sm`}>Acessar</a>
+                <span className="text-[#7e7e7e]">|</span>
+                <a href="/register" className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'} text-sm`}>Cadastrar</a>
+              </div>
             </div>
           </div>
-
-          {/* Search Form */}
-          <form onSubmit={handleSearch} className="flex gap-2 items-center">
-            <Input
-              placeholder="Marca, modelo ou placa"
-              value={vehicle}
-              onChange={(e) => setVehicle(e.target.value)}
-              className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} flex-1`}
-            />
-            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} px-3 py-2 rounded-md border`}>
+          
+          {/* Search Filter Bar */}
+          <div className="flex items-center gap-2">
+            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-[#222]'} px-3 py-2 rounded-md border flex-1`}>
+              <option>Veículo</option>
+            </select>
+            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-[#222]'} px-3 py-2 rounded-md border flex-1`}>
               <option>Valor médio</option>
             </select>
-            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} px-3 py-2 rounded-md border`}>
+            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-[#222]'} px-3 py-2 rounded-md border flex-1`}>
               <option>Motorização</option>
             </select>
-            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} px-3 py-2 rounded-md border`}>
+            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-[#222]'} px-3 py-2 rounded-md border flex-1`}>
               <option>Ano</option>
             </select>
-            <Input
-              placeholder="Cidade"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} w-32`}
-            />
-            <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white">
-              <Search className="w-4 h-4" />
+            <select className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-[#222]'} px-3 py-2 rounded-md border w-40`}>
+              <option>São Paulo</option>
+            </select>
+            <Button className="bg-[#ff8c00] hover:bg-[#ff8c00]/90 text-white px-6">
+              🔍
             </Button>
-          </form>
+          </div>
         </div>
       </header>
 
-      {/* Mobile Header */}
-      <header className={`md:hidden ${isDarkMode ? 'bg-[#222]' : 'bg-white'} border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} sticky top-0 z-50 shadow-sm`}>
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <button onClick={() => setIsMenuOpen(true)}>
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-[#dc2626] rounded-full flex items-center justify-center mr-2">
-                <span className="text-white font-bold text-sm">V</span>
-              </div>
-              <span className="text-[#dc2626] font-bold text-lg">Vehicles</span>
+      {/* Desktop Navigation */}
+      <nav className={`hidden md:block ${isDarkMode ? 'bg-[#222]' : 'bg-white'} border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} px-4 py-3`}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-8">
+            <div className={`flex items-center ${isDarkMode ? 'text-white' : 'text-[#222]'} font-medium`}>
+              Categorias
+              <ChevronDown className="w-4 h-4 ml-1" />
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={toggleTheme} className="p-1">
-                {isDarkMode ? <Sun className="w-4 h-4 text-[#7e7e7e]" /> : <Moon className="w-4 h-4 text-[#7e7e7e]" />}
-              </button>
-              <div className={`flex items-center text-sm ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                <MapPin className="w-4 h-4 mr-1" />
-                SP
-              </div>
-            </div>
+            <span className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>Carros</span>
+            <span className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>Motos</span>
+            <span className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>Caminhões</span>
+            <span className={`${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>Revendedoras</span>
           </div>
+          <Button className="bg-[#fe2601] hover:bg-[#fe2601]/90 text-white px-6">Anunciar Veículo</Button>
+        </div>
+      </nav>
 
-          {/* Mobile Search */}
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <Input
-              placeholder="Marca ou modelo"
-              value={vehicle}
-              onChange={(e) => setVehicle(e.target.value)}
-              className={`${isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'} flex-1 rounded-full`}
-            />
-            <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white rounded-full">
-              <Search className="w-4 h-4" />
-            </Button>
-          </form>
+      {/* Mobile Header */}
+      <header className={`md:hidden ${isDarkMode ? 'bg-[#222]' : 'bg-white'} border-b ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} px-4 py-3`}>
+        <div className="flex items-center justify-between">
+          <button onClick={toggleMenu}>
+            <Menu className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-[#222]'}`} />
+          </button>
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-[#fe2601] rounded-full flex items-center justify-center mr-2">
+              <span className="text-white font-bold text-sm">V</span>
+            </div>
+            <span className="text-[#fe2601] font-bold text-lg">Vehicles</span>
+          </div>
+          <button onClick={toggleTheme} className={`flex items-center ${isDarkMode ? 'bg-[#454545]' : 'bg-[#ebebeb]'} rounded-full p-1`}>
+            {isDarkMode ? (
+              <>
+                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                  <Moon className="w-3 h-3 text-[#222]" />
+                </div>
+                <Sun className="w-4 h-4 text-[#7e7e7e] mx-1" />
+              </>
+            ) : (
+              <>
+                <Sun className="w-4 h-4 text-[#7e7e7e] mx-1" />
+                <div className="w-6 h-6 bg-[#222] rounded-full"></div>
+              </>
+            )}
+          </button>
         </div>
       </header>
     </>

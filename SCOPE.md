@@ -28,35 +28,34 @@ Plataforma web nacional para anúncio e busca de veículos usados, inspirada no 
 
 #### 2.1.1 Registro de Usuários
 **Página: "Faça seu cadastro"**
-- **Seção: Tipo de Perfil** (NOVO - obrigatório)
-  - Radio buttons para selecionar tipo de usuário:
-    - **Pessoa Física** (particular)
-    - **Revendedora Particular**
-    - **Garage/Rotativa**
-    - **Concessionária**
-  - Descrição breve de cada tipo
-  - Cada tipo tem funcionalidades diferentes
+- **Seção: Tipo de Perfil** (OBRIGATÓRIO - NÃO ALTERAR)
+  - **IMPORTANTE**: Apenas 2 opções de tipo de usuário:
+    - **Pessoa Física** (particular - CPF)
+    - **Pessoa Jurídica** (empresa - CNPJ)
+  - Botões com ícones (User para PF, Building para PJ)
+  - Seleção automática baseada no documento (CPF = PF, CNPJ = PJ)
+  - **NÃO incluir**: Revendedora, Garage/Rotativa, Concessionária (essas são categorias internas, não tipos de cadastro)
 
 - **Seção: Dados do Usuário**
-  - **Nome** (campo de texto obrigatório, ex: "Nome completo")
-  - **E-mail** (campo de email obrigatório)
+  - **Nome/Razão Social** (campo de texto obrigatório)
+    - Se Pessoa Física: "Nome Completo"
+    - Se Pessoa Jurídica: "Nome da Empresa"
+  - **Documento** (campo com máscara automática)
+    - Se Pessoa Física: CPF (000.000.000-00)
+    - Se Pessoa Jurídica: CNPJ (00.000.000/0000-00)
   - **Telefone** (campo com máscara, ex: "(DD) 99999-9999")
-  - **Confirmar E-mail** (campo de email obrigatório)
+  - **E-mail** (campo de email obrigatório)
 
 - **Seção: Dados de Acesso**
-  - **Senha** (campo de password obrigatório)
-  - **Confirmar Senha** (campo de password obrigatório)
+  - **Senha** (campo de password obrigatório, mínimo 8 caracteres)
+  - Botão de visualizar/ocultar senha (ícone olho)
 
-- **Seção: Verificação**
-  - **CAPTCHA** (Cloudflare Turnstile - verificação numérica)
-  - Campo de texto para digitar o texto da imagem
-
-- **Seção: Preferências de Comunicação**
+- **Seção: Preferências de Comunicação** (OPCIONAL)
   - Checkbox: "Aceito receber ofertas semanais do Usado Fácil."
   - Checkbox: "Aceito receber promoções e ofertas dos parceiros."
   - Checkbox: "Aceito os termos da Política de Privacidade." (obrigatório)
 
-- **Botão de ação**: "Cadastrar" (verde)
+- **Botão de ação**: "Criar Conta" (vermelho #fe2601)
 
 #### 2.1.2 Login de Usuários
 **Página: "Faça login ou crie sua conta"**
@@ -82,12 +81,49 @@ Plataforma web nacional para anúncio e busca de veículos usados, inspirada no 
   - **Botão**: "Cadastre-se grátis" (laranja)
 
 #### 2.1.3 Recuperação de Senha
-- **Página: "Esqueceu sua senha?"**
-  - Campo para inserir email
-  - Botão "Enviar link de recuperação"
-  - Email de confirmação com link para resetar senha
+**Página: "/forgot-password"** (IMPLEMENTADO)
+- **Padrão Visual**: Idêntico ao Login e Registro
+  - Card centralizado com logo "Q" em vermelho (#fe2601)
+  - Tema claro/escuro sincronizado
+  - Cores e espaçamento padrão
 
-#### 2.1.4 Tipos de Usuários
+- **Fluxo em 3 Etapas**:
+  
+  **Etapa 1: Inserir E-mail**
+  - Campo de e-mail obrigatório
+  - Botão "Enviar Código"
+  - Descrição: "Digite seu e-mail para receber um código de recuperação"
+  
+  **Etapa 2: Verificar OTP (6 dígitos)**
+  - Input com máscara para exatamente 6 dígitos
+  - Apenas números permitidos
+  - Fonte monoespacial com espaçamento visual (tracking-widest)
+  - Texto centralizado e ampliado (text-2xl)
+  - Mostra e-mail para confirmação
+  - Botão "Verificar Código" (habilitado apenas com 6 dígitos)
+  - Descrição: "Insira o código de 6 dígitos enviado para seu e-mail"
+  
+  **Etapa 3: Criar Nova Senha**
+  - Campo "Nova Senha" (mínimo 8 caracteres)
+  - Campo "Confirmar Senha" (mínimo 8 caracteres)
+  - Validação: senhas devem conferir
+  - Botão "Atualizar Senha"
+  - Descrição: "Crie uma nova senha para sua conta"
+
+- **Navegação**:
+  - Botão "Voltar" em cada etapa (exceto na primeira)
+  - Link "Voltar ao Login" em todas as etapas
+  - Redirecionamento automático para login após sucesso
+
+#### 2.1.4 Tipos de Usuários e Sistema de Permissões
+
+**⚠️ IMPORTANTE: Padrão de Acesso Baseado em Roles**
+- Admin é um usuário comum com um "role" ou "permission" especial (tipo "ADMIN")
+- Não é um tipo de usuário separado, mas uma permissão/acesso adicional
+- No futuro haverá outros tipos de acesso (ex: MODERADOR, SUPORTE, etc.)
+- **Padrão a manter**: Sempre usar um sistema de roles/permissions separado do tipo de usuário
+- Implementação: Campo `role` ou `permission` na tabela User, não alterar `type`
+- Exemplo: Um usuário pode ser `type: PRIVATE` com `role: ADMIN`
 
 **Usuário Normal (Pessoa Física)**
 - Pode criar anúncios de veículos pessoais
@@ -98,6 +134,7 @@ Plataforma web nacional para anúncio e busca de veículos usados, inspirada no 
 - Visualizar histórico de anúncios
 - Sistema de favoritos
 - Acesso a serviços de destaque (Destaque, Super Destaque, Ofertão)
+- **Com role ADMIN**: Acesso ao painel administrativo completo
 
 **Revendedora Particular**
 - Pode criar múltiplos anúncios (pacote de anúncios)
@@ -936,7 +973,7 @@ model User {
   password      String    // hashed with bcrypt
   name          String
   phone         String
-  type          UserType  @default(PESSOA_FISICA) // PESSOA_FISICA | REVENDEDOR
+  type          UserType  @default(PRIVATE) // PRIVATE | REVENDEDOR
   
   // Address
   street        String?
@@ -965,7 +1002,7 @@ model User {
 }
 
 enum UserType {
-  PESSOA_FISICA
+  PRIVATE
   REVENDEDOR
 }
 
@@ -1166,7 +1203,7 @@ Implemente sistema de autenticação com NextAuth.js v5:
 - Recuperação de senha (POST /api/auth/forgot-password)
 - Perfil de usuário (GET/PUT /api/users/[id])
 - Sincronização de dados de usuário OAuth com banco de dados
-- Tipos de usuário (PESSOA_FISICA, REVENDEDOR, ADMIN)
+- Tipos de usuário (PRIVATE, REVENDEDOR, ADMIN)
 ```
 
 ### Prompt 3.1: Painel Administrativo
@@ -1638,35 +1675,51 @@ Implemente painel de gestão de planos e serviços de destaque:
   * Histórico de alterações de preços
 ```
 
-### Prompt 22: Página de Contato e Suporte
+### Prompt 22: Página de Contato e Suporte (IMPLEMENTADO)
 ```
-Implemente página de contato e suporte:
-- Página /contato com formulário de contato
+✅ Página /contact com formulário de contato
 - Campos: Nome, Email, Assunto, Mensagem, Telefone (opcional)
 - Validação com Zod
 - POST /api/contact para enviar mensagem
 - Integração com email (Resend ou similar)
 - Confirmação de envio ao usuário
-- Página /faq com perguntas frequentes
-- Página /termos com termos de serviço
-- Página /privacidade com política de privacidade
+- Cards de informações (Email, Telefone, Endereço)
+- Seção de FAQ integrada
+
+✅ Página /faq com perguntas frequentes
+- 12 perguntas frequentes em 7 categorias
+- Filtro por categoria
+- Accordion expansível
+- Link para página de contato
+
+✅ Página /terms com termos de serviço
+- 10 seções de termos completos
+- Formatação clara e legível
+- Conformidade legal
+
+✅ Página /privacy com política de privacidade
+- 11 seções de política de privacidade
+- Conformidade com LGPD
+- Detalhes sobre coleta e uso de dados
 ```
 
-### Prompt 23: Sistema de Notificações
+### Prompt 23: Sistema de Notificações (IMPLEMENTADO)
 ```
-Implemente sistema de notificações:
-- Notificações em tempo real (Socket.io ou similar)
+✅ Página /notifications com histórico de notificações
 - Tipos de notificação:
-  * Novo interessado no anúncio
-  * Anúncio foi moderado/aprovado/rejeitado
-  * Pacote vencendo em 7 dias
-  * Novo review recebido
-  * Denúncia resolvida
-- Página /notificacoes com histórico
-- Badge de notificações não lidas
+  * Novo interessado no anúncio (Heart)
+  * Anúncio foi moderado/aprovado/rejeitado (CheckCircle/AlertCircle)
+  * Pacote vencendo em 7 dias (AlertCircle)
+  * Novo review recebido (Star)
+  * Visualizações de anúncio (Eye)
+- Filtro por tipo de notificação
+- Filtro por status (Lidas/Não lidas)
 - Marcar como lida/deletar notificação
-- GET /api/notifications para listar
-- PUT /api/notifications/[id]/read para marcar como lida
+- Marcar todas como lidas
+- Deletar todas as notificações
+- Badge de notificações não lidas
+- GET /api/notifications para listar (a implementar)
+- PUT /api/notifications/[id]/read para marcar como lida (a implementar)
 ```
 
 ### Prompt 24: Sistema de Chat/Mensagens

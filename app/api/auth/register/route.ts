@@ -7,7 +7,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(2),
-  type: z.enum(["PESSOA_FISICA", "REVENDEDORA", "GARAGE", "CONCESSIONARIA"]),
+  type: z.enum(["PRIVATE", "RESELLER", "GARAGE", "DEALERSHIP"]),
   phone: z.string().min(10),
   city: z.string().min(2),
   state: z.string().length(2),

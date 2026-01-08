@@ -10,7 +10,7 @@ export const registerSchema = z.object({
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
   confirmPassword: z.string(),
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
-  type: z.enum(["PESSOA_FISICA", "REVENDEDORA", "GARAGE", "CONCESSIONARIA"]),
+  type: z.enum(["PRIVATE", "RESELLER", "GARAGE", "DEALERSHIP"]),
   phone: z.string().min(10, "Telefone inválido"),
   city: z.string().min(2, "Cidade inválida"),
   state: z.string().length(2, "Estado inválido"),

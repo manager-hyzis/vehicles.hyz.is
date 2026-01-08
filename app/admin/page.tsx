@@ -1,47 +1,102 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Users, FileText, CreditCard, BarChart3, Eye, Edit, Trash2, Settings } from "lucide-react"
+import { toast } from "sonner"
+
+interface Stats {
+  totalUsers: number
+  totalAnnouncements: number
+  activeAnnouncements: number
+  totalRevenue: number
+  newUsersThisMonth: number
+  newAnnouncementsThisMonth: number
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+  type: string
+  createdAt: string
+}
+
+interface Announcement {
+  id: string
+  title: string
+  user: { name: string }
+  status: string
+  createdAt: string
+}
 
 export default function AdminDashboard() {
-  const [stats] = useState({
-    totalUsers: 1247,
-    totalAnnouncements: 3456,
-    activeAnnouncements: 2890,
-    totalRevenue: 45670.5,
-    newUsersThisMonth: 89,
-    newAnnouncementsThisMonth: 156,
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [stats, setStats] = useState<Stats>({
+    totalUsers: 0,
+    totalAnnouncements: 0,
+    activeAnnouncements: 0,
+    totalRevenue: 0,
+    newUsersThisMonth: 0,
+    newAnnouncementsThisMonth: 0,
   })
+  const [recentUsers, setRecentUsers] = useState<User[]>([])
+  const [recentAnnouncements, setRecentAnnouncements] = useState<Announcement[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const [recentUsers] = useState([
-    { id: 1, name: "João Silva", email: "joao@email.com", type: "PF", plan: "Básico", createdAt: "2024-01-15" },
-    { id: 2, name: "Maria Santos", email: "maria@email.com", type: "PJ", plan: "Premium", createdAt: "2024-01-14" },
-    { id: 3, name: "Pedro Costa", email: "pedro@email.com", type: "PF", plan: "Básico", createdAt: "2024-01-13" },
-  ])
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login")
+      return
+    }
+    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
+      router.push("/")
+      return
+    }
+    if (status === "authenticated") {
+      fetchAdminData()
+    }
+  }, [status, session])
 
-  const [recentAnnouncements] = useState([
-    { id: 1, title: "Bar do Alex", user: "João Silva", city: "Sorocaba", status: "Ativo", createdAt: "2024-01-15" },
-    {
-      id: 2,
-      title: "Consultório Dr. Silva",
-      user: "Maria Santos",
-      city: "São Paulo",
-      status: "Pendente",
-      createdAt: "2024-01-14",
-    },
-    {
-      id: 3,
-      title: "Loja de Roupas Fashion",
-      user: "Pedro Costa",
-      city: "Campinas",
-      status: "Ativo",
-      createdAt: "2024-01-13",
-    },
-  ])
+  const fetchAdminData = async () => {
+    try {
+      setIsLoading(true)
+      const [usersRes, vehiclesRes] = await Promise.all([
+        fetch("/api/admin/users?limit=3"),
+        fetch("/api/vehicles?limit=3"),
+      ])
+
+      if (usersRes.ok) {
+        const userData = await usersRes.json()
+        setRecentUsers(userData.users || [])
+      }
+
+      if (vehiclesRes.ok) {
+        const vehicleData = await vehiclesRes.json()
+        setRecentAnnouncements(vehicleData || [])
+      }
+
+      setStats({
+        totalUsers: 1247,
+        totalAnnouncements: 3456,
+        activeAnnouncements: 2890,
+        totalRevenue: 45670.5,
+        newUsersThisMonth: 89,
+        newAnnouncementsThisMonth: 156,
+      })
+    } catch (error) {
+      console.error("Error fetching admin data:", error)
+      toast.error("Erro ao carregar dados do admin")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-[#111]">

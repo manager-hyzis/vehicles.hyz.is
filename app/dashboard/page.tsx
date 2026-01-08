@@ -1,207 +1,335 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Eye, Edit, Trash2, Star, MapPin, Calendar } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Eye, Heart, MessageSquare, TrendingUp, DollarSign, Star } from "lucide-react"
+import Link from "next/link"
+import { toast } from "sonner"
+
+interface DashboardStats {
+  activeAds: number
+  totalViews: number
+  viewsThisMonth: number
+  interested: number
+  sales: number
+  revenue: number
+  reputation: number
+  totalReviews: number
+}
+
+const defaultStats: DashboardStats = {
+  activeAds: 0,
+  totalViews: 0,
+  viewsThisMonth: 0,
+  interested: 0,
+  sales: 0,
+  revenue: 0,
+  reputation: 0,
+  totalReviews: 0,
+}
+
+interface RecentAd {
+  id: string
+  title: string
+  price: number
+  views: number
+  interested: number
+  status: "ACTIVE" | "PAUSED" | "SOLD"
+  createdAt: string
+}
+
+interface Notification {
+  id: string
+  type: "VIEW" | "INTERESTED" | "REVIEW" | "EXPIRING" | "APPROVED" | "REJECTED"
+  message: string
+  timestamp: string
+  read: boolean
+}
+
+const notificationConfig = {
+  VIEW: { icon: Eye, color: "bg-blue-100 text-blue-800" },
+  INTERESTED: { icon: Heart, color: "bg-red-100 text-red-800" },
+  REVIEW: { icon: Star, color: "bg-yellow-100 text-yellow-800" },
+  EXPIRING: { icon: TrendingUp, color: "bg-orange-100 text-orange-800" },
+  APPROVED: { icon: MessageSquare, color: "bg-green-100 text-green-800" },
+  REJECTED: { icon: MessageSquare, color: "bg-red-100 text-red-800" },
+}
 
 export default function DashboardPage() {
-  const [user] = useState({
-    name: "João Silva",
-    email: "joao@email.com",
-    plan: "Plano Básico",
-    announcements: 2,
-    maxAnnouncements: 3,
-  })
+  const [stats, setStats] = useState<DashboardStats>(defaultStats)
+  const [recentAds, setRecentAds] = useState<RecentAd[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const [announcements] = useState([
-    {
-      id: 1,
-      title: "Bar do Alex",
-      category: "Comer e Beber",
-      city: "Sorocaba",
-      status: "Ativo",
-      views: 156,
-      photos: 3,
-      createdAt: "2024-01-15",
-      featured: false,
-    },
-    {
-      id: 2,
-      title: "Consultório Médico Dr. Silva",
-      category: "Medicina e Saúde",
-      city: "Sorocaba",
-      status: "Ativo",
-      views: 89,
-      photos: 2,
-      createdAt: "2024-01-10",
-      featured: true,
-    },
-  ])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const [statsRes, adsRes, notificationsRes] = await Promise.all([
+          fetch("/api/dashboard/stats"),
+          fetch("/api/dashboard/announcements?limit=5"),
+          fetch("/api/notifications?limit=5"),
+        ])
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData)
+        }
+
+        if (adsRes.ok) {
+          const adsData = await adsRes.json()
+          setRecentAds(adsData)
+        }
+
+        if (notificationsRes.ok) {
+          const notificationsData = await notificationsRes.json()
+          setNotifications(notificationsData)
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error)
+        toast.error("Erro ao carregar dados do dashboard")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f5f5f5] dark:bg-[#111] p-6 flex items-center justify-center">
+        <p className="text-[#7e7e7e] dark:text-[#ebebeb]">Carregando dashboard...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#111]">
-      {/* Header */}
-      <header className="bg-white dark:bg-[#222] border-b border-[#e4e4e7] dark:border-[#454545]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#fe2601] rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Q</span>
-              </div>
-              <span className="font-bold text-[#222222] dark:text-white">Guiaponto</span>
-            </Link>
-            <nav className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-[#fe2601] font-medium">
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/profile"
-                className="text-[#7e7e7e] dark:text-[#ebebeb] hover:text-[#222222] dark:hover:text-white"
-              >
-                Perfil
-              </Link>
-              <Link
-                href="/dashboard/plan"
-                className="text-[#7e7e7e] dark:text-[#ebebeb] hover:text-[#222222] dark:hover:text-white"
-              >
-                Plano
-              </Link>
-              <Button variant="outline" size="sm" onClick={() => (window.location.href = "/")}>
-                Sair
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
+    <div className="min-h-screen bg-[#f5f5f5] dark:bg-[#111] p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#222222] dark:text-white mb-2">Olá, {user.name}!</h1>
-          <p className="text-[#7e7e7e] dark:text-[#ebebeb]">Gerencie seus anúncios e acompanhe o desempenho</p>
+          <h1 className="text-3xl font-bold text-[#222] dark:text-white mb-2">Dashboard</h1>
+          <p className="text-[#7e7e7e] dark:text-[#ebebeb]">Bem-vindo ao seu painel de controle</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">Anúncios Ativos</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">
+                Anúncios Ativos
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#222222] dark:text-white">
-                {user.announcements}/{user.maxAnnouncements}
+              <div className="text-3xl font-bold text-[#222] dark:text-white">{stats.activeAds}</div>
+              <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">Anúncios publicados</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb] flex items-center gap-2">
+                <Eye size={16} className="text-blue-600" />
+                Visualizações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-[#222] dark:text-white">{stats.totalViews}</div>
+              <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">
+                {stats.viewsThisMonth} este mês
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb] flex items-center gap-2">
+                <Heart size={16} className="text-red-600" />
+                Interessados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-[#222] dark:text-white">{stats.interested}</div>
+              <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">Pessoas interessadas</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb] flex items-center gap-2">
+                <TrendingUp size={16} className="text-green-600" />
+                Vendas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-[#222] dark:text-white">{stats.sales}</div>
+              <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">Veículos vendidos</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb] flex items-center gap-2">
+                <DollarSign size={16} className="text-green-600" />
+                Receita Total
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#222] dark:text-white">
+                R$ {stats.revenue.toLocaleString("pt-BR")}
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">Visualizações</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb] flex items-center gap-2">
+                <Star size={16} className="text-yellow-600" />
+                Reputação
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#222222] dark:text-white">245</div>
+              <div className="text-2xl font-bold text-[#222] dark:text-white">
+                {stats.reputation}/5.0
+              </div>
+              <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">
+                {stats.totalReviews} avaliações
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">Plano Atual</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">
+                Ações Rápidas
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-semibold text-[#222222] dark:text-white">{user.plan}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-[#7e7e7e] dark:text-[#ebebeb]">Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Ativo</Badge>
+              <div className="space-y-2">
+                <Link href="/create-announcement" className="block">
+                  <Button className="w-full bg-[#fe2601] hover:bg-[#fe2601]/90 text-white text-sm">
+                    Novo Anúncio
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Announcements Section */}
-        <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-[#222222] dark:text-white">Meus Anúncios</CardTitle>
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Anúncios Recentes */}
+          <div className="lg:col-span-2">
+            <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+              <CardHeader>
+                <CardTitle className="text-[#222] dark:text-white">Anúncios Recentes</CardTitle>
                 <CardDescription className="text-[#7e7e7e] dark:text-[#ebebeb]">
-                  Gerencie seus anúncios publicados
+                  Seus últimos anúncios publicados
                 </CardDescription>
-              </div>
-              <Button className="bg-[#fe2601] hover:bg-[#fe2601]/90 text-white">
-                <Plus size={16} className="mr-2" />
-                Novo Anúncio
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {announcements.map((announcement) => (
-                <div
-                  key={announcement.id}
-                  className="border border-[#e4e4e7] dark:border-[#454545] rounded-lg p-4 hover:bg-[#fafafa] dark:hover:bg-[#111] transition-colors"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-[#222222] dark:text-white">{announcement.title}</h3>
-                        {announcement.featured && <Star size={16} className="text-yellow-500 fill-current" />}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-[#7e7e7e] dark:text-[#ebebeb]">
-                        <span className="flex items-center gap-1">
-                          <MapPin size={14} />
-                          {announcement.city}
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recentAds.map((ad) => (
+                    <div
+                      key={ad.id}
+                      className="p-4 rounded-lg bg-[#fafafa] dark:bg-[#111] border border-[#e4e4e7] dark:border-[#454545]"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-semibold text-[#222] dark:text-white">{ad.title}</h3>
+                          <p className="text-sm text-[#7e7e7e] dark:text-[#ebebeb]">
+                            R$ {ad.price.toLocaleString("pt-BR")}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            ad.status === "ACTIVE"
+                              ? "bg-green-100 text-green-800"
+                              : ad.status === "PAUSED"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {ad.status === "ACTIVE"
+                            ? "Ativo"
+                            : ad.status === "PAUSED"
+                              ? "Pausado"
+                              : "Vendido"}
                         </span>
-                        <span>{announcement.category}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-[#7e7e7e] dark:text-[#ebebeb]">
                         <span className="flex items-center gap-1">
                           <Eye size={14} />
-                          {announcement.views} visualizações
+                          {ad.views} visualizações
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart size={14} />
+                          {ad.interested} interessados
+                        </span>
+                        <span className="text-[#7e7e7e] dark:text-[#ebebeb]">
+                          {new Date(ad.createdAt).toLocaleDateString("pt-BR")}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={announcement.status === "Ativo" ? "default" : "secondary"}
-                        className={
-                          announcement.status === "Ativo"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : ""
-                        }
-                      >
-                        {announcement.status}
-                      </Badge>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm">
-                          <Eye size={16} />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit size={16} />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                          <Trash2 size={16} />
-                        </Button>
+                  ))}
+                </div>
+                <Link href="/dashboard/my-announcements">
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 border-[#e4e4e7] dark:border-[#454545] text-[#222] dark:text-white hover:bg-[#fafafa] dark:hover:bg-[#111]"
+                  >
+                    Ver Todos os Anúncios
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Notificações */}
+          <Card className="bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+            <CardHeader>
+              <CardTitle className="text-[#222] dark:text-white">Notificações</CardTitle>
+              <CardDescription className="text-[#7e7e7e] dark:text-[#ebebeb]">
+                Atividades recentes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {notifications.map((notif) => {
+                  const config = notificationConfig[notif.type]
+                  const Icon = config.icon
+                  return (
+                    <div
+                      key={notif.id}
+                      className={`p-3 rounded-lg ${
+                        notif.read
+                          ? "bg-[#fafafa] dark:bg-[#111]"
+                          : "bg-[#fe2601]/10 dark:bg-[#fe2601]/20 border border-[#fe2601]"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded ${config.color}`}>
+                          <Icon size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-[#222] dark:text-white">{notif.message}</p>
+                          <p className="text-xs text-[#7e7e7e] dark:text-[#ebebeb] mt-1">
+                            {new Date(notif.timestamp).toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-[#7e7e7e] dark:text-[#ebebeb]">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      Criado em {new Date(announcement.createdAt).toLocaleDateString("pt-BR")}
-                    </span>
-                    <span>{announcement.photos} fotos</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

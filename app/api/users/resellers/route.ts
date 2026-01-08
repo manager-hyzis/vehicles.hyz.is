@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const where: any = {
       type: {
-        in: ["REVENDEDORA", "GARAGE", "CONCESSIONARIA"],
+        in: ["RESELLER", "GARAGE", "DEALERSHIP"],
       },
       status: "ACTIVE",
     }

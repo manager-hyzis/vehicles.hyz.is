@@ -15,9 +15,13 @@ model User {
   name          String
   phone         String
   image         String?
-  type          UserType  @default(PESSOA_FISICA)
+  logo          String?
+  type          UserType  @default(PRIVATE)
+  role          UserRole  @default(USER)
+  status        UserStatus @default(ACTIVE)
   
   street        String?
+  address       String?
   neighborhood  String?
   city          String
   state         String
@@ -26,6 +30,8 @@ model User {
   
   latitude      Float?
   longitude     Float?
+  
+  reputation    Float?    @default(0)
   
   acceptOffers  Boolean  @default(true)
   acceptPartnerOffers Boolean @default(true)
@@ -39,21 +45,37 @@ model User {
   reports       Report[]
   reviews       Review[]
   subscriptions Subscription[]
+  messagesSent  Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+  notifications Notification[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   @@index([email])
   @@index([type])
+  @@index([role])
   @@index([city])
 }
 
 enum UserType {
-  PESSOA_FISICA
-  REVENDEDORA
+  PRIVATE
+  PESSOA_JURIDICA
+  RESELLER
   GARAGE
-  CONCESSIONARIA
+  DEALERSHIP
+}
+
+enum UserRole {
+  USER
   ADMIN
+  MODERADOR
+  SUPORTE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
 }
 
 model Vehicle {
@@ -100,6 +122,9 @@ model Vehicle {
   reports       Report[]
   reviews       Review[]
   highlights    Highlight[]
+  moderation    Moderation?
+  messages      Message[]
+  notifications Notification[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -269,7 +294,7 @@ model Plan {
   price         Decimal   @db.Decimal(10, 2)
   description   String?   @db.Text
   
-  userTypes     String[]  // PESSOA_FISICA, REVENDEDORA, GARAGE, CONCESSIONARIA
+  userTypes     String[]  // PRIVATE, RESELLER, GARAGE, DEALERSHIP
   
   subscriptions Subscription[]
   
@@ -282,6 +307,8 @@ model Highlight {
   vehicleId     String
   vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   
+  name          String?
+  description   String?   @db.Text
   type          HighlightType
   price         Decimal   @db.Decimal(10, 2)
   duration      Int       // em dias
@@ -299,4 +326,101 @@ enum HighlightType {
   DESTAQUE
   SUPER_DESTAQUE
   OFERTAO
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  type          CouponType
+  value         Decimal   @db.Decimal(10, 2)
+  maxUses       Int
+  usedCount     Int       @default(0)
+  expiresAt     DateTime
+  active        Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([code])
+  @@index([active])
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  senderId      String
+  sender        User      @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId    String
+  receiver      User      @relation("MessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  vehicleId     String?
+  vehicle       Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  
+  content       String    @db.Text
+  isRead        Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([vehicleId])
+  @@index([isRead])
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title         String
+  message       String    @db.Text
+  type          NotificationType
+  
+  vehicleId     String?
+  vehicle       Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  
+  isRead        Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+}
+
+enum NotificationType {
+  VEHICLE_APPROVED
+  VEHICLE_REJECTED
+  PAYMENT_RECEIVED
+  NEW_MESSAGE
+  REVIEW_RECEIVED
+  SUBSCRIPTION_EXPIRING
+  HIGHLIGHT_EXPIRING
+}
+
+model Moderation {
+  id            String    @id @default(cuid())
+  vehicleId     String    @unique
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  
+  status        ModerationStatus @default(PENDING)
+  reason        String?   @db.Text
+  reviewedBy    String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([status])
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

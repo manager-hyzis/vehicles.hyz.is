@@ -1,280 +1,196 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Header from "@/components/layout/Header"
-import Footer from "@/components/layout/Footer"
+import type React from "react"
+
+import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "sonner"
-import Link from "next/link"
-
-const userTypes = [
-  { value: "PESSOA_FISICA", label: "Pessoa Física" },
-  { value: "REVENDEDORA", label: "Revendedora" },
-  { value: "GARAGE", label: "Garage/Logista" },
-  { value: "CONCESSIONARIA", label: "Concessionária" },
-]
-
-const states = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
-]
+import { Eye, EyeOff, Building, User } from "lucide-react"
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [accountType, setAccountType] = useState<"PF" | "PJ">("PF")
   const [formData, setFormData] = useState({
+    name: "",
+    document: "",
+    phone: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    name: "",
-    type: "PESSOA_FISICA",
-    phone: "",
-    city: "",
-    state: "",
   })
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
-      document.documentElement.classList.add('dark')
-    }
-  }, [])
-
-  const handleThemeToggle = (isDark: boolean) => {
-    setIsDarkMode(isDark)
-    localStorage.setItem('theme', isDark ? 'dark' : 'light')
-    if (isDark) {
-      document.documentElement.classList.add('dark')
+  const formatDocument = (value: string, type: "PF" | "PJ") => {
+    const numbers = value.replace(/\D/g, "")
+    if (type === "PF") {
+      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
     } else {
-      document.documentElement.classList.remove('dark')
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, "")
+    return numbers.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")
   }
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "")
+    const newType = value.length <= 11 ? "PF" : "PJ"
+    setAccountType(newType)
+    setFormData({ ...formData, document: formatDocument(value, newType) })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Senhas não conferem")
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          type: formData.type,
-          phone: formData.phone,
-          city: formData.city,
-          state: formData.state,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        toast.error(error.message || "Erro ao cadastrar")
-        return
-      }
-
-      toast.success("Cadastro realizado com sucesso!")
-      router.push("/login")
-    } catch (error) {
-      toast.error("Erro ao cadastrar")
-    } finally {
-      setIsLoading(false)
-    }
+    // Mock registration - redirect to dashboard
+    window.location.href = "/dashboard"
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-[#111]' : 'bg-white'}`}>
-      <Header isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} />
-      
-      <div className={`flex items-center justify-center ${isDarkMode ? 'bg-[#111]' : 'bg-[#f5f5f5]'} p-4 py-12`}>
-        <Card className={`w-full max-w-md ${isDarkMode ? 'bg-[#222] border-[#454545]' : 'bg-white border-[#e4e4e7]'}`}>
-          <CardHeader className="space-y-2">
-            <CardTitle className={`text-2xl ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>Cadastro</CardTitle>
-            <CardDescription className={isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}>Crie sua conta na Vehicles</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="name" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Nome Completo
-                </label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Seu nome"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
-                />
-              </div>
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#111] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white dark:bg-[#222] border-[#e4e4e7] dark:border-[#454545]">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-[#fe2601] rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-xl">Q</span>
+            </div>
+          </div>
+          <CardTitle className="text-2xl text-[#222222] dark:text-white">Criar Conta</CardTitle>
+          <CardDescription className="text-[#7e7e7e] dark:text-[#ebebeb]">
+            Cadastre-se para anunciar no Guiaponto
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex mb-6 bg-[#fafafa] dark:bg-[#111] rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setAccountType("PF")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                accountType === "PF"
+                  ? "bg-white dark:bg-[#222] text-[#222222] dark:text-white shadow-sm"
+                  : "text-[#7e7e7e] dark:text-[#ebebeb]"
+              }`}
+            >
+              <User size={16} />
+              Pessoa Física
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccountType("PJ")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                accountType === "PJ"
+                  ? "bg-white dark:bg-[#222] text-[#222222] dark:text-white shadow-sm"
+                  : "text-[#7e7e7e] dark:text-[#ebebeb]"
+              }`}
+            >
+              <Building size={16} />
+              Pessoa Jurídica
+            </button>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-[#222222] dark:text-white">
+                {accountType === "PF" ? "Nome Completo" : "Nome da Empresa"}
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder={accountType === "PF" ? "Seu nome completo" : "Nome da sua empresa"}
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="bg-white dark:bg-[#111] border-[#e4e4e7] dark:border-[#454545] text-[#222222] dark:text-white"
+                required
+              />
+            </div>
 
-              <div className="space-y-2">
-                <label htmlFor="phone" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Telefone
-                </label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  placeholder="(11) 99999-9999"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="document" className="text-[#222222] dark:text-white">
+                {accountType === "PF" ? "CPF" : "CNPJ"}
+              </Label>
+              <Input
+                id="document"
+                type="text"
+                placeholder={accountType === "PF" ? "000.000.000-00" : "00.000.000/0000-00"}
+                value={formData.document}
+                onChange={handleDocumentChange}
+                className="bg-white dark:bg-[#111] border-[#e4e4e7] dark:border-[#454545] text-[#222222] dark:text-white"
+                required
+              />
+            </div>
 
-              <div className="space-y-2">
-                <label htmlFor="type" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Tipo de Perfil
-                </label>
-                <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)}>
-                  <SelectTrigger id="type" disabled={isLoading} className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className={isDarkMode ? 'bg-[#222] border-[#454545]' : 'bg-white border-[#e4e4e7]'}>
-                    {userTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-[#222222] dark:text-white">
+                Telefone
+              </Label>
+              <Input
+                id="phone"
+                type="text"
+                placeholder="(00) 00000-0000"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
+                className="bg-white dark:bg-[#111] border-[#e4e4e7] dark:border-[#454545] text-[#222222] dark:text-white"
+                required
+              />
+            </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <label htmlFor="state" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                    Estado
-                  </label>
-                  <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)}>
-                    <SelectTrigger id="state" disabled={isLoading} className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className={isDarkMode ? 'bg-[#222] border-[#454545]' : 'bg-white border-[#e4e4e7]'}>
-                      {states.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[#222222] dark:text-white">
+                E-mail
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-white dark:bg-[#111] border-[#e4e4e7] dark:border-[#454545] text-[#222222] dark:text-white"
+                required
+              />
+            </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="city" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                    Cidade
-                  </label>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="São Paulo"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="password" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Senha
-                </label>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-[#222222] dark:text-white">
+                Senha
+              </Label>
+              <div className="relative">
                 <Input
                   id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 8 caracteres"
                   value={formData.password}
-                  onChange={handleChange}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="bg-white dark:bg-[#111] border-[#e4e4e7] dark:border-[#454545] text-[#222222] dark:text-white pr-10"
+                  minLength={8}
                   required
-                  disabled={isLoading}
-                  className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7e7e7e] dark:text-[#ebebeb]"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                  Confirmar Senha
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  className={isDarkMode ? 'bg-[#111] border-[#454545] text-white' : 'bg-white border-[#e4e4e7] text-black'}
-                />
-              </div>
+            <Button type="submit" className="w-full bg-[#fe2601] hover:bg-[#fe2601]/90 text-white">
+              Criar Conta
+            </Button>
+          </form>
 
-              <Button
-                type="submit"
-                className="w-full bg-[#dc2626] hover:bg-[#991b1b]"
-                disabled={isLoading}
-              >
-                {isLoading ? "Cadastrando..." : "Cadastrar"}
-              </Button>
-            </form>
-
-            <div className={`mt-4 text-center text-sm ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-              Já tem conta?{" "}
-              <Link href="/login" className="text-[#dc2626] hover:underline font-medium">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-[#7e7e7e] dark:text-[#ebebeb]">
+              Já tem uma conta?{" "}
+              <Link href="/login" className="text-[#fe2601] hover:underline">
                 Faça login
               </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Footer isDarkMode={isDarkMode} />
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

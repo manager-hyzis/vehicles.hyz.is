@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
       router.push("/login")
       return
     }
-    if (status === "authenticated" && session?.user?.type !== "ADMIN") {
+    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
       router.push("/")
       return
     }
@@ -161,10 +161,10 @@ export default function AdminUsersPage() {
                   </SelectTrigger>
                   <SelectContent className={isDarkMode ? 'bg-[#222] border-[#454545]' : 'bg-white border-[#e4e4e7]'}>
                     <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="PESSOA_FISICA">Pessoa Física</SelectItem>
-                    <SelectItem value="REVENDEDORA">Revendedora</SelectItem>
+                    <SelectItem value="PRIVATE">Pessoa Física</SelectItem>
+                    <SelectItem value="RESELLER">Revendedora</SelectItem>
                     <SelectItem value="GARAGE">Garage/Logista</SelectItem>
-                    <SelectItem value="CONCESSIONARIA">Concessionária</SelectItem>
+                    <SelectItem value="DEALERSHIP">Concessionária</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
@@ -215,9 +215,9 @@ export default function AdminUsersPage() {
                           Tipo
                         </p>
                         <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-[#222]'}`}>
-                          {user.type === "PESSOA_FISICA"
+                          {user.type === "PRIVATE"
                             ? "Pessoa Física"
-                            : user.type === "REVENDEDORA"
+                            : user.type === "RESELLER"
                             ? "Revendedora"
                             : user.type === "GARAGE"
                             ? "Garage"

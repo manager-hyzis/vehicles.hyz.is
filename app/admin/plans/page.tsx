@@ -63,7 +63,7 @@ export default function AdminPlansPage() {
       router.push("/login")
       return
     }
-    if (status === "authenticated" && session?.user?.type !== "ADMIN") {
+    if (status === "authenticated" && session?.user?.role !== "ADMIN") {
       router.push("/")
       return
     }

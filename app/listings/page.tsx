@@ -204,7 +204,7 @@ export default function ListingsPage() {
 
                           <div className={`border-t ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} pt-3`}>
                             <p className={`text-xs ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                              {vehicle.user.type === "PESSOA_FISICA"
+                              {vehicle.user.type === "PRIVATE"
                                 ? "Pessoa Física"
                                 : "Revendedora"}
                             </p>

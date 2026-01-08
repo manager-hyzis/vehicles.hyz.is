@@ -172,7 +172,7 @@ export default function ResellersPage() {
                             {reseller.name}
                           </h3>
                           <p className={`text-sm ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                            {reseller.type === "REVENDEDORA"
+                            {reseller.type === "RESELLER"
                               ? "Revendedora"
                               : reseller.type === "GARAGE"
                               ? "Garage/Logista"

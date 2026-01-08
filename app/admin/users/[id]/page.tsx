@@ -296,10 +296,10 @@ export default function AdminUserDetailsPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className={isDarkMode ? 'bg-[#222] border-[#454545]' : 'bg-white border-[#e4e4e7]'}>
-                        <SelectItem value="PESSOA_FISICA">Pessoa Física</SelectItem>
-                        <SelectItem value="REVENDEDORA">Revendedora</SelectItem>
+                        <SelectItem value="PRIVATE">Pessoa Física</SelectItem>
+                        <SelectItem value="RESELLER">Revendedora</SelectItem>
                         <SelectItem value="GARAGE">Garage/Logista</SelectItem>
-                        <SelectItem value="CONCESSIONARIA">Concessionária</SelectItem>
+                        <SelectItem value="DEALERSHIP">Concessionária</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

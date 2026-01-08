@@ -16,10 +16,10 @@ const fuels = ["GASOLINA", "DIESEL", "ELETRICO", "HIBRIDO", "ALCOOL"]
 const transmissions = ["MANUAL", "AUTOMATICA"]
 const states = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"]
 const userTypes = [
-  { value: "PESSOA_FISICA", label: "Pessoa Física" },
-  { value: "REVENDEDORA", label: "Revendedora" },
+  { value: "PRIVATE", label: "Pessoa Física" },
+  { value: "RESELLER", label: "Revendedora" },
   { value: "GARAGE", label: "Garage/Logista" },
-  { value: "CONCESSIONARIA", label: "Concessionária" },
+  { value: "DEALERSHIP", label: "Concessionária" },
 ]
 
 interface Vehicle {
@@ -41,6 +41,13 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [quickSearch, setQuickSearch] = useState({
+    vehicle: "",
+    price: "",
+    motorization: "",
+    year: "",
+    city: "",
+  })
   const [filters, setFilters] = useState({
     brand: "",
     model: "",
@@ -144,7 +151,71 @@ export default function SearchPage() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-[#111]' : 'bg-white'}`}>
-      <Header isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} />
+      <Header isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} showSearchBar={true} />
+
+      {/* Horizontal Search Bar */}
+      <section className="bg-gradient-to-r from-[#1b7a3a] to-[#2d9d52] text-white px-4 py-6 sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <input
+              type="text"
+              placeholder="Veículo"
+              value={quickSearch.vehicle}
+              onChange={(e) => setQuickSearch({ ...quickSearch, vehicle: e.target.value })}
+              className="bg-[#4a9d6f] text-white px-3 py-2 rounded text-sm placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <select
+              value={quickSearch.price}
+              onChange={(e) => setQuickSearch({ ...quickSearch, price: e.target.value })}
+              className="bg-[#4a9d6f] text-white px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            >
+              <option value="">Valor médio</option>
+              <option value="0-20000">Até R$ 20.000</option>
+              <option value="20000-40000">R$ 20.000 - R$ 40.000</option>
+              <option value="40000-60000">R$ 40.000 - R$ 60.000</option>
+              <option value="60000-100000">R$ 60.000 - R$ 100.000</option>
+              <option value="100000+">Acima de R$ 100.000</option>
+            </select>
+            <select
+              value={quickSearch.motorization}
+              onChange={(e) => setQuickSearch({ ...quickSearch, motorization: e.target.value })}
+              className="bg-[#4a9d6f] text-white px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            >
+              <option value="">Motorização</option>
+              <option value="gasolina">Gasolina</option>
+              <option value="diesel">Diesel</option>
+              <option value="flex">Flex</option>
+              <option value="eletrico">Elétrico</option>
+              <option value="hibrido">Híbrido</option>
+            </select>
+            <select
+              value={quickSearch.year}
+              onChange={(e) => setQuickSearch({ ...quickSearch, year: e.target.value })}
+              className="bg-[#4a9d6f] text-white px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            >
+              <option value="">Ano</option>
+              {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+            <select
+              value={quickSearch.city}
+              onChange={(e) => setQuickSearch({ ...quickSearch, city: e.target.value })}
+              className="bg-[#4a9d6f] text-white px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            >
+              <option value="">Cidade</option>
+              <option value="sao-paulo">São Paulo, SP</option>
+              <option value="rio-janeiro">Rio de Janeiro, RJ</option>
+              <option value="belo-horizonte">Belo Horizonte, MG</option>
+              <option value="brasilia">Brasília, DF</option>
+              <option value="salvador">Salvador, BA</option>
+            </select>
+            <button className="bg-yellow-400 hover:bg-yellow-500 text-[#1b7a3a] font-bold rounded text-sm">
+              🔍
+            </button>
+          </div>
+        </div>
+      </section>
 
       <section className={`py-8 px-4 ${isDarkMode ? 'bg-[#111]' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -417,7 +488,7 @@ export default function SearchPage() {
 
                             <div className={`border-t ${isDarkMode ? 'border-[#454545]' : 'border-[#e4e4e7]'} pt-3`}>
                               <p className={`text-xs ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                                {vehicle.user.type === "PESSOA_FISICA"
+                                {vehicle.user.type === "PRIVATE"
                                   ? "Pessoa Física"
                                   : "Revendedora"}
                               </p>

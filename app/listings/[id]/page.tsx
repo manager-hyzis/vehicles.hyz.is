@@ -144,8 +144,11 @@ export default function ListingDetailsPage() {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-[#111]' : 'bg-white'}`}>
         <Header isDarkMode={isDarkMode} onThemeToggle={handleThemeToggle} />
-        <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center justify-center py-12">
           <p className={isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}>Anúncio não encontrado</p>
+          <Link href="/search" className="mt-4 text-[#dc2626] hover:underline">
+            Voltar para busca
+          </Link>
         </div>
         <Footer isDarkMode={isDarkMode} />
       </div>
@@ -297,7 +300,7 @@ export default function ListingDetailsPage() {
                       {vehicle.user.name}
                     </p>
                     <p className={`text-sm ${isDarkMode ? 'text-[#7e7e7e]' : 'text-[#52525b]'}`}>
-                      {vehicle.user.type === "PESSOA_FISICA" ? "Pessoa Física" : "Revendedora"}
+                      {vehicle.user.type === "PRIVATE" ? "Pessoa Física" : "Revendedora"}
                     </p>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
